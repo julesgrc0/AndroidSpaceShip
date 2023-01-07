@@ -24,7 +24,6 @@ namespace AndroidSpaceShip
         GAMEOVER = 4,
     }
 
-
     public class GameSettings
     {
         public float aspectRatio = 1f;
@@ -37,6 +36,7 @@ namespace AndroidSpaceShip
 
         public bool init = false;
     }
+
     public class GameRoot : Game
     {
         public GraphicsDeviceManager graphicsDevice { get; private set; }
@@ -59,10 +59,8 @@ namespace AndroidSpaceShip
         public float GuiScale = 3.5f;
         public float FontScale = 0.25f;
 
-#if TEST || DEBUG
         private bool debugMode = false;
         private IconButton debugButton = new IconButton();
-#endif
 
         public GameRoot()
         {
@@ -134,46 +132,18 @@ namespace AndroidSpaceShip
             settings.aspectRatio = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.AspectRatio;
 
             storage = new Storage();
-            if(storage.Init())
-            {
-                storage.Write(settings);
-            }
-            else
-            {
-                try
-                {
-                    GameSettings testSettings = storage.Read().ToObject<GameSettings>();
-                    if (testSettings.init)
-                    {
-                        settings = testSettings;
-                        if (settings.aspectRatio != GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.AspectRatio)
-                        {
-                            int[] sizes = this.calcAspectRatio(this.graphicsDevice.PreferredBackBufferWidth, this.settings.aspectRatio);
-                            this.ChangeViewport(sizes);
-                        }
-                    }
-                    else
-                    {
-                        storage.Write(settings);
-                    }
-                }
-                catch
-                {
-                    storage.Write(settings);
-                }
-            }
+            this.LoadStorage();
 
             this.ScreenDefaultGame.Load();
             this.ScreenHome.Load();
             this.ScreenSetting.Load();
             this.ScreenGameOver.Load();
 
-#if TEST || DEBUG
+
             Texture2D debugIcon = Content.Load<Texture2D>("debug");
             debugButton.Initialize(this.spriteBatch, this.Content, this.hudCamera);
             debugButton.Load();
             debugButton.Set(new Vector2(this.hudCamera.Size.X - 30f, this.hudCamera.Size.Y - 60f), debugIcon, this.GuiScale, true);
-#endif
         }
 
         protected override void UnloadContent()
@@ -191,67 +161,39 @@ namespace AndroidSpaceShip
             float deltatime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             TouchCollection touchLocations = TouchPanel.GetState();
-            GameScreens next;         
+            GameScreens next;
 
             if ((next = (GameScreens)this.currentScreen.Update(deltatime, touchLocations)) != GameScreens.NONE)
             {
-                if(next == GameScreens.HOME)
+                if (next == GameScreens.HOME)
                 {
                     this.currentScreen = this.ScreenHome;
-                }else if(next == GameScreens.DEFAULT_GAME)
+                }
+                else if (next == GameScreens.DEFAULT_GAME)
                 {
                     this.currentScreen = this.ScreenDefaultGame;
                     this.currentScreen.Reset();
-                }else if(next == GameScreens.SETTING)
+                }
+                else if (next == GameScreens.SETTING)
                 {
                     this.currentScreen = this.ScreenSetting;
-                }else if(next == GameScreens.GAMEOVER)
+                }
+                else if (next == GameScreens.GAMEOVER)
                 {
                     this.ScreenGameOver.Reset();
-                    if(this.currentScreen.Id == (int)GameScreens.DEFAULT_GAME)
+                    if (this.currentScreen.Id == (int)GameScreens.DEFAULT_GAME)
                     {
                         this.ScreenGameOver.backgroundY = this.ScreenDefaultGame.background.MoveY - (deltatime * this.ScreenDefaultGame.background.Speed) * 2;
                         this.ScreenGameOver.time = this.ScreenDefaultGame.time;
                         this.ScreenGameOver.kill = this.ScreenDefaultGame.player.Kill;
                         this.ScreenGameOver.score = (int)((this.ScreenDefaultGame.player.Kill + 1) * this.ScreenDefaultGame.time * 10);
-                    }                    
+                    }
                     this.currentScreen = this.ScreenGameOver;
                 }
             }
 
-#if TEST || DEBUG
-            if (this.currentScreen.Id == (int)GameScreens.HOME)
-            {
-                this.debugButton.Update(deltatime, touchLocations);
-                if (this.debugButton.isClick())
-                {
-                    this.debugMode = !this.debugMode;
-                }
-            }
-#endif
-
+            this.UpdateDebugInformations(deltatime, touchLocations);
             base.Update(gameTime);
-        }
-
-        public void ChangeViewport(int[] sizes)
-        {
-            this.graphicsDevice.PreferredBackBufferWidth = sizes[0];
-            this.graphicsDevice.PreferredBackBufferHeight = sizes[1];
-
-            this.graphicsDevice.ApplyChanges();
-
-            this.ScreenHome.camera.ChangeViewport(GraphicsDevice.Viewport);
-            this.ScreenSetting.camera.ChangeViewport(GraphicsDevice.Viewport);
-            this.ScreenDefaultGame.camera.ChangeViewport(GraphicsDevice.Viewport);
-            this.ScreenGameOver.camera.ChangeViewport(GraphicsDevice.Viewport);
-        }
-
-        public int[] calcAspectRatio(int width, float aspectRatio)
-        {
-            int[] size = new int[2];
-            size[0] = width;
-            size[1] = (int)(width / aspectRatio);
-            return size;
         }
 
         protected override void Draw(GameTime gameTime)
@@ -260,78 +202,23 @@ namespace AndroidSpaceShip
 
             this.currentScreen.Draw();
 
-#if TEST || DEBUG
-            float deltatime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            if (deltatime != 0)
-            {
 
-                if (this.debugMode)
-                {
-                    spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, null, null, null, this.hudCamera.Transform);
+            //SpriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.NonPremultiplied, SamplerState.PointClamp, null, null, null, ScreenMatrix);
+            //Game Objects
 
-                    string info = $@" Graphics Adapter {GraphicsDevice.Adapter.Description}
- Display Mode {GraphicsDevice.Adapter.CurrentDisplayMode}
- FPS {1 / deltatime}
- Deltatime {deltatime}
- Resolution {graphicsDevice.PreferredBackBufferWidth}x{graphicsDevice.PreferredBackBufferHeight}
- Aspect Ratio {(float)graphicsDevice.PreferredBackBufferWidth / (float)graphicsDevice.PreferredBackBufferHeight}
- Screen Id {this.currentScreen.Id}
- Storage Error {!storage.StorageOK}
- Loading Settings {storage.Loading}";
+            //SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointWrap, null, null, null, ScreenMatrix);
+            //Foreground Tile Layers
 
-                    Process proc = Process.GetCurrentProcess();
-                    info += $@"
- Name {proc.ProcessName}
- Threads {proc.Threads.Count}
- Memory {proc.PrivateMemorySize64 / (1024.0 * 1024.0)} Mo";
-                    proc.Dispose();
+            //SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, null, null, null, ScreenMatrix);
+            //Normal Effects & Particles
 
-                    info += $@"
+            //SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive, SamplerState.PointClamp, null, null, null, ScreenMatrix);
+            //Other Effects & Particles
 
- Game
- Position {this.ScreenDefaultGame.player.position}
- Velocity {this.ScreenDefaultGame.player.velocity}
- Life {this.ScreenDefaultGame.player.Life}
- Kill {this.ScreenDefaultGame.player.Kill}
- Time {this.ScreenDefaultGame.time}
- Game Speed x{this.ScreenDefaultGame.GameSpeed}
- New Cloud {this.ScreenDefaultGame.cloudManager.addTime}
- New Enemy {this.ScreenDefaultGame.enemyManager.addTime}
-    ";
-#if DEBUG
-                    info += "\n Mode DEBUG";
-#else
-                    info += "\n Mode TEST";
-#endif
-info +=  $"\n Version {System.Reflection.Assembly.GetExecutingAssembly().GetName().Version}";
-
-                    spriteBatch.DrawString(font, info, Vector2.Zero, Color.White, 0, Vector2.Zero, FontScale / 2f, SpriteEffects.None, 0);
-
-                    spriteBatch.End();
-                }
-
-                if (this.currentScreen.Id == (int)GameScreens.HOME)
-                {
-                    this.debugButton.Draw();
-                }
-
-            }
-#endif
-
-                    //SpriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.NonPremultiplied, SamplerState.PointClamp, null, null, null, ScreenMatrix);
-                    //Game Objects
-
-                    //SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointWrap, null, null, null, ScreenMatrix);
-                    //Foreground Tile Layers
-
-                    //SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, null, null, null, ScreenMatrix);
-                    //Normal Effects & Particles
-
-                    //SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive, SamplerState.PointClamp, null, null, null, ScreenMatrix);
-                    //Other Effects & Particles
-
-                    base.Draw(gameTime);
+            this.DrawDebugInformations(gameTime);
+            base.Draw(gameTime);
         }
+
 
         public void OnPause()
         {
@@ -353,5 +240,135 @@ info +=  $"\n Version {System.Reflection.Assembly.GetExecutingAssembly().GetName
         {
 
         }
+
+        public void ChangeViewport(int[] sizes)
+        {
+            this.graphicsDevice.PreferredBackBufferWidth = sizes[0];
+            this.graphicsDevice.PreferredBackBufferHeight = sizes[1];
+
+            this.graphicsDevice.ApplyChanges();
+
+            this.ScreenHome.camera.ChangeViewport(GraphicsDevice.Viewport);
+            this.ScreenSetting.camera.ChangeViewport(GraphicsDevice.Viewport);
+            this.ScreenDefaultGame.camera.ChangeViewport(GraphicsDevice.Viewport);
+            this.ScreenGameOver.camera.ChangeViewport(GraphicsDevice.Viewport);
+        }
+
+        public int[] CalcAspectRatio(int width, float aspectRatio)
+        {
+            int[] size = new int[2];
+            size[0] = width;
+            size[1] = (int)(width / aspectRatio);
+            return size;
+        }
+
+
+        private void LoadStorage()
+        {
+            if (storage.Init())
+            {
+                storage.Write(settings);
+            }
+            else
+            {
+                try
+                {
+                    GameSettings testSettings = storage.Read().ToObject<GameSettings>();
+                    if (testSettings.init)
+                    {
+                        settings = testSettings;
+                        if (settings.aspectRatio != GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.AspectRatio)
+                        {
+                            int[] sizes = this.CalcAspectRatio(this.graphicsDevice.PreferredBackBufferWidth, this.settings.aspectRatio);
+                            this.ChangeViewport(sizes);
+                        }
+                    }
+                    else
+                    {
+                        storage.Write(settings);
+                    }
+                }
+                catch
+                {
+                    storage.Write(settings);
+                }
+            }
+        }
+
+        private void UpdateDebugInformations(float deltatime, TouchCollection touchLocations)
+        {
+#if TEST || DEBUG
+            if (this.currentScreen.Id == (int)GameScreens.HOME)
+            {
+                this.debugButton.Update(deltatime, touchLocations);
+                if (this.debugButton.isClick())
+                {
+                    this.debugMode = !this.debugMode;
+                }
+            }
+#endif
+        }
+
+        private void DrawDebugInformations(GameTime gameTime)
+        {
+#if TEST || DEBUG
+            if (this.currentScreen.Id == (int)GameScreens.HOME)
+            {
+                this.debugButton.Draw();
+            }
+
+            float deltatime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (deltatime == 0)
+            {
+                return;
+            }
+            if (!this.debugMode)
+            {
+                return;
+            }
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, null, null, null, this.hudCamera.Transform);
+
+            string info = $@" Graphics Adapter {GraphicsDevice.Adapter.Description}
+ Display Mode {GraphicsDevice.Adapter.CurrentDisplayMode}
+ FPS {1 / deltatime}
+ Deltatime {deltatime}
+ Resolution {graphicsDevice.PreferredBackBufferWidth}x{graphicsDevice.PreferredBackBufferHeight}
+ Aspect Ratio {(float)graphicsDevice.PreferredBackBufferWidth / (float)graphicsDevice.PreferredBackBufferHeight}
+ Screen Id {this.currentScreen.Id}
+ Storage Error {!storage.StorageOK}
+ Loading Settings {storage.Loading}";
+
+            Process proc = Process.GetCurrentProcess();
+            info += $@"
+ Name {proc.ProcessName}
+ Threads {proc.Threads.Count}
+ Memory {proc.PrivateMemorySize64 / (1024.0 * 1024.0)} Mo";
+            proc.Dispose();
+
+            info += $@"
+
+ Game
+ Position {this.ScreenDefaultGame.player.position}
+ Velocity {this.ScreenDefaultGame.player.velocity}
+ Life {this.ScreenDefaultGame.player.Life}
+ Kill {this.ScreenDefaultGame.player.Kill}
+ Time {this.ScreenDefaultGame.time}
+ Game Speed x{this.ScreenDefaultGame.GameSpeed}
+ New Cloud {this.ScreenDefaultGame.cloudManager.addTime}
+ New Enemy {this.ScreenDefaultGame.enemyManager.addTime}
+    ";
+#if DEBUG
+            info += "\n Mode DEBUG";
+#else
+            info += "\n Mode TEST";
+#endif
+            info += $"\n Version {System.Reflection.Assembly.GetExecutingAssembly().GetName().Version}";
+
+            spriteBatch.DrawString(font, info, Vector2.Zero, Color.White, 0, Vector2.Zero, FontScale / 2f, SpriteEffects.None, 0);
+            spriteBatch.End();
+
+#endif
+        }
+
     }
 }

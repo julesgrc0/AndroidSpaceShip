@@ -87,6 +87,11 @@ namespace AndroidSpaceShip.Gui
             this.iconPosition[1] = this.position - (this.iconSize - new Vector2(14f * scale, (12 * scale) + pixelPressedMargin)) / 2f;
         }
 
+        public bool isOperated()
+        {
+            return this.isPressed;
+        }
+
         public bool isClick()
         {
             bool val = this.wasClick;
@@ -108,27 +113,15 @@ namespace AndroidSpaceShip.Gui
                 {
                     if (this.CheckCollision(relpos))
                     {
-                        this.isPressed = false;
-                        this.wasClick = true;
-                        break;
+                        this.wasClick = true;   
                     }
-                    else
-                    {
-                        this.isPressed = false;
-                        break;
-                    }
+                    this.isPressed = false;
+                    break;
                 }
-                else
+                else if (touch.State == TouchLocationState.Pressed && this.CheckCollision(relpos))
                 {
-                    if (touch.State == TouchLocationState.Pressed)
-                    {
-
-                        if (this.CheckCollision(relpos))
-                        {
-                            this.isPressed = true;
-                            break;
-                        }
-                    }
+                    this.isPressed = true;
+                    break;
                 }
             }
         }

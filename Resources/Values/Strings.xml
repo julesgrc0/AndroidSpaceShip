@@ -2,8 +2,6 @@
 <resources>
   <color name="background_default">#181425</color>
   <string name="app_name">SpaceShip</string>
-
-  
   <style name="AppTheme.Splash" parent="@android:style/Theme.NoTitleBar">
     <item name="android:windowBackground">@drawable/splash_screen</item>
     <item name="android:windowNoTitle">true</item>

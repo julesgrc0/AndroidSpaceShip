@@ -18,6 +18,7 @@ namespace AndroidSpaceShip.Gui
         private bool isPressed = false;
         public Vector2 Size { get; private set; }
         private Vector2[] textPosition;
+        private Color buttonFilter = Color.White;
 
         private SpriteFont font;
         public string text { get; private set; } = string.Empty;
@@ -50,6 +51,11 @@ namespace AndroidSpaceShip.Gui
         {
             float buttonWidth = this.font.MeasureString(text).X * this.fontScale;
             this.Set(position, text, scale, buttonCenterX, 0, buttonWidth);
+        }
+
+        public void ChangeColor(Color c)
+        {
+            this.buttonFilter = c;
         }
 
         public void Set(Vector2 position, string text, float scale, bool buttonCenterX = false, int textMarginX = 0, float buttonWidth = 20)
@@ -155,26 +161,26 @@ namespace AndroidSpaceShip.Gui
 
         public override void Draw()
         {
-            
-            
 
-            if(this.isPressed)
+
+
+            if (this.isPressed)
             {
                 this.spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.NonPremultiplied, SamplerState.PointClamp, null, null, null, this.camera.Transform);
-                    this.spriteBatch.Draw(this.texture,
-                      destinationRectangle: this.pressedRenderRect[0],
-                      sourceRectangle: this.pressedRects[0],
-                      Color.White);
+                this.spriteBatch.Draw(this.texture,
+                  destinationRectangle: this.pressedRenderRect[0],
+                  sourceRectangle: this.pressedRects[0],
+                  this.buttonFilter);
 
-                    this.spriteBatch.Draw(this.texture,
-                    destinationRectangle: this.pressedRenderRect[1],
-                    sourceRectangle: this.pressedRects[1],
-                    Color.White);
+                this.spriteBatch.Draw(this.texture,
+                destinationRectangle: this.pressedRenderRect[1],
+                sourceRectangle: this.pressedRects[1],
+               this.buttonFilter);
 
-                    this.spriteBatch.Draw(this.texture,
-                    destinationRectangle: this.pressedRenderRect[2],
-                    sourceRectangle: this.pressedRects[2],
-                    Color.White);
+                this.spriteBatch.Draw(this.texture,
+                destinationRectangle: this.pressedRenderRect[2],
+                sourceRectangle: this.pressedRects[2],
+               this.buttonFilter);
                 this.spriteBatch.End();
 
                 this.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, null, null, null, this.camera.Transform);
@@ -183,30 +189,30 @@ namespace AndroidSpaceShip.Gui
             }
             else
             {
-                this.spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.NonPremultiplied, SamplerState.PointClamp, null, null, null, this.camera.Transform); 
-                
+                this.spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.NonPremultiplied, SamplerState.PointClamp, null, null, null, this.camera.Transform);
+
                 this.spriteBatch.Draw(this.texture,
                   destinationRectangle: this.defaultRenderRect[0],
                   sourceRectangle: this.defaultRects[0],
-                  Color.White);
+                  this.buttonFilter);
 
                 this.spriteBatch.Draw(this.texture,
                 destinationRectangle: this.defaultRenderRect[1],
                 sourceRectangle: this.defaultRects[1],
-                Color.White);
+                this.buttonFilter);
 
                 this.spriteBatch.Draw(this.texture,
                 destinationRectangle: this.defaultRenderRect[2],
                 sourceRectangle: this.defaultRects[2],
-                Color.White);
+               this.buttonFilter);
                 this.spriteBatch.End();
 
                 this.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, null, null, null, this.camera.Transform);
                 this.spriteBatch.DrawString(this.font, this.text, this.textPosition[0], Color.White, 0, Vector2.Zero, fontScale, SpriteEffects.None, 0f);
                 this.spriteBatch.End();
             }
-                
-            
+
+
         }
     }
 }

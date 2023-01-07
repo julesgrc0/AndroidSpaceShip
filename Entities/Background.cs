@@ -1,4 +1,5 @@
 ﻿using System;
+using Android.OS;
 using AndroidSpaceShip.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -20,7 +21,6 @@ namespace AndroidSpaceShip.Entities
         public Background()
         {
             
-
         }
 
         public  void Initialize(SpriteBatch spriteBatch, ContentManager contentManager, Camera camera)
@@ -33,18 +33,19 @@ namespace AndroidSpaceShip.Entities
         {
 
             this.texture = this.contentManager.Load<Texture2D>("desert-backgorund-looped");
-            this.MoveY = 304f;
+           
 
             this.SourceRect = new Rectangle(0, (int)this.MoveY, 256, 304);
+            this.MoveY = this.SourceRect.Height;
             this.Size = this.camera.Size;
         }
 
         public override void Update(float deltatime, TouchCollection touchLocations)
         {
             this.MoveY -= deltatime * Speed;
-            if(this.MoveY <= 0.2f)
+            if (this.MoveY <= 0.0f)
             {
-                this.MoveY = 304;
+                this.MoveY += this.SourceRect.Height;
             }
             this.SourceRect = new Rectangle(0, (int)this.MoveY, this.SourceRect.Width, this.SourceRect.Height);
         }
@@ -55,8 +56,8 @@ namespace AndroidSpaceShip.Entities
 
             this.spriteBatch.Draw(this.texture,
                 destinationRectangle: new Rectangle((int)this.position.X, (int)this.position.Y, (int)this.Size.X, (int)this.Size.Y),
-               sourceRectangle: SourceRect,
-               Color.White);
+                sourceRectangle: SourceRect,
+                Color.White);
 
             this.spriteBatch.End();
         }

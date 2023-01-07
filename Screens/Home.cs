@@ -26,8 +26,6 @@ namespace AndroidSpaceShip.Screens
 
         public override void Load()
         {
-    
-
             Vector2 startBtnPos = (this.camera.Size / 2) - new Vector2(0f, this.camera.Size.Y / 10);
             this.CreateButton(this.startBtn,
                 "Jouer",
@@ -60,7 +58,6 @@ namespace AndroidSpaceShip.Screens
 
             button.Set(position, text, this.game.GuiScale, true, textX, width);
         }
-
 
         public override int Update(float deltatime, TouchCollection touchLocations)
         {

@@ -147,7 +147,7 @@ namespace AndroidSpaceShip.Screens
             if(this.resolutionSelect.HasChange())
             {
                 int index = this.resolutionSelect.GetIndex();
-                int[] sizes = this.game.calcAspectRatio(this.game.GraphicsDevice.Viewport.Width, this.aspectRatios[index]);
+                int[] sizes = this.game.CalcAspectRatio(this.game.GraphicsDevice.Viewport.Width, this.aspectRatios[index]);
 
                 this.game.ChangeViewport(sizes);
                 this.game.settings.aspectRatio = this.aspectRatios[index];

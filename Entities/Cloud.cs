@@ -20,6 +20,7 @@ namespace AndroidSpaceShip.Entities
         private Random random = new Random();
         private Camera camera;
         private Player player;
+
         public CloudManager()
         {
 
